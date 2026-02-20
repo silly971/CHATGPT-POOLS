@@ -2,7 +2,7 @@
 [![Telegram 交流群](https://img.shields.io/badge/Telegram-交流群-blue?logo=telegram)](https://t.me/+W7iplSdBGXhlMDc1)
 [![Linux DO](https://img.shields.io/badge/Linux%20DO-Yelo-green?logo=discourse)](https://linux.do/u/yelo/summary)
 
-一个多渠道 Team 账号管理与兑换平台，支持多种订单渠道接入、自动发货、积分体系和权限管理。使用 Vue 3、Node.js、shadcn-vue 和 SQLite 构建。
+一个多渠道 ChatGPT 账号管理与兑换平台，支持个人账号与 Team 账号并行管理，支持多种订单渠道接入、自动发货、积分体系和权限管理。使用 Vue 3、Node.js、shadcn-vue 和 SQLite 构建。
 
 <img width="3840" height="1920" alt="image" src="https://github.com/user-attachments/assets/e5fcd950-7844-4ff7-be00-28246024a847" />
 
@@ -16,11 +16,24 @@
 ## 功能特性
 
 ### 账号管理
-- Team 账号全生命周期管理（创建、编辑、删除、封号）
+- 个人账号 / Team 账号全生命周期管理（创建、编辑、删除、封号）
 - 开放API 提供 Token 自动刷新与状态同步
-- 账号用户数、邀请数实时同步（通过 OpenAI API）
+- 账号额度与到期时间自动校验（个人优先，Team 兜底）
+- Team 账号用户数、邀请数实时同步（通过 OpenAI API）
 - 账号到期管理与开放展示控制
 - 创建账号时自动生成兑换码
+
+#### 账号额度来源（个人优先）
+
+- `POST /api/gpt-accounts/check-token` 已支持返回 personal + team 账号列表，不再要求“必须先加入 Team”。
+- 新增 `quota` 字段用于描述当前额度来源账号与状态：
+  - `sourceAccountId`
+  - `planType`
+  - `expiresAt`
+  - `hasActiveSubscription`
+  - `status`（`normal` / `expired` / `unknown`）
+- 状态判定规则：优先使用 `expiresAt`；若缺失则回退 `hasActiveSubscription`。
+- Team 专用操作（同步成员/邀请/撤邀/踢人）仅对 `accountType=team` 开放；个人账号会返回明确业务错误提示。
 
 ### 多渠道兑换
 - **通用兑换**：邮箱 + 兑换码直接兑换
@@ -98,7 +111,7 @@
 
 ```bash
 git clone <仓库地址>
-cd auto-gpt-team
+cd chatgpt-team-helper
 ```
 
 #### 2. 构建镜像
